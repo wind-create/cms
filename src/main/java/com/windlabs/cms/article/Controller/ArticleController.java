@@ -6,7 +6,8 @@ import com.windlabs.cms.article.DTO.UpdateArticleRequest;
 import com.windlabs.cms.article.Service.ArticleService;
 import com.windlabs.cms.common.response.ApiResponse;
 import com.windlabs.cms.common.response.PageResponse;
-
+import com.windlabs.cms.security.CurrentUserProvider;
+import org.springframework.security.core.Authentication;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -22,11 +23,15 @@ public class ArticleController {
 
     private final ArticleService articleService;
 
+    private final CurrentUserProvider currentUserProvider;
+
     @PostMapping
     public ResponseEntity<ApiResponse<ArticleResponse>> createArticle(
-            @Valid @RequestBody CreateArticleRequest request
+            @Valid @RequestBody CreateArticleRequest request,
+            Authentication authentication
     ) {
-        ArticleResponse content = articleService.createArticle(request);
+        UUID currentUserId = currentUserProvider.getUserId(authentication);
+        ArticleResponse content = articleService.createArticle(request, currentUserId);
 
         ApiResponse<ArticleResponse> response = ApiResponse.success(
                 HttpStatus.CREATED.value(),
@@ -104,9 +109,11 @@ public class ArticleController {
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<ArticleResponse>> updateArticle(
             @PathVariable UUID id,
-            @Valid @RequestBody UpdateArticleRequest request
+            @Valid @RequestBody UpdateArticleRequest request,
+            Authentication authentication
     ) {
-        ArticleResponse content = articleService.updateArticle(id, request);
+        UUID currentUserId = currentUserProvider.getUserId(authentication);
+        ArticleResponse content = articleService.updateArticle(id, request, currentUserId);
 
         ApiResponse<ArticleResponse> response = ApiResponse.success(
                 HttpStatus.OK.value(),

@@ -39,7 +39,7 @@ public class ArticleService {
     private final CategoryRepository categoryRepository;
 
     @Transactional
-    public ArticleResponse createArticle(CreateArticleRequest request) {
+    public ArticleResponse createArticle(CreateArticleRequest request, UUID currentUserId) {
         DomainEntity domain = findDomainOrThrow(request.getDomainId());
 
         AuthorEntity author = null;
@@ -84,7 +84,8 @@ public class ArticleService {
                 .featuredImageUrl(normalizeNullableText(request.getFeaturedImageUrl()))
                 .scheduledAt(request.getScheduledAt())
                 .publishedAt(publishedAt)
-                .createdBy(request.getCreatedBy())
+                .createdBy(currentUserId)
+                .updatedBy(currentUserId)
                 .build();
 
         ArticleEntity savedArticle = articleRepository.save(article);
@@ -153,7 +154,7 @@ public class ArticleService {
     }
 
     @Transactional
-    public ArticleResponse updateArticle(UUID id, UpdateArticleRequest request) {
+    public ArticleResponse updateArticle(UUID id, UpdateArticleRequest request, UUID currentUserId) {
         ArticleEntity article = findArticleOrThrow(id);
 
         DomainEntity targetDomain = article.getDomain();
@@ -246,7 +247,7 @@ public class ArticleService {
         }
 
         if (request.getUpdatedBy() != null) {
-            article.setUpdatedBy(request.getUpdatedBy());
+            article.setUpdatedBy(currentUserId);
         }
 
         ArticleEntity updatedArticle = articleRepository.save(article);
